@@ -1,0 +1,149 @@
+---
+title: "Analisis Regresi Berganda"
+author: "Rika Ajeng Finatih"
+date: "2024-05-14"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Import Data
+
+```{r}
+# Summary Data
+kemiskinan <- read.csv("D:/SEMESTER 6 GACOOORRR!!/Analisis Regresi Terapan/DataAnreg.csv")
+kemiskinan
+```
+
+```{r}
+# Statistika deskriptif
+summary(kemiskinan)
+```
+
+```{r}
+library(ggplot2)
+
+# Scatter plot Jumlah Penduduk vs. Tingkat Pengangguran
+ggplot(data = kemiskinan, aes(x = Kemiskinan, y = Jumlah_Penduduk)) +
+  geom_point(color = "darkblue") +
+  labs(title = "Tingkat Kemiskinan Vs Jumlah Penduduk", x = "Tingkat Kemiskinan", y = "Jumlah Penduduk")
+
+# Scatter plot Jumlah Penduduk vs. IPM
+ggplot(data = kemiskinan, aes(x = Kemiskinan, y = Tingkat_Pengganguran)) +
+  geom_point(color = "darkgreen") +
+  labs(title = "Tingkat Kemiskinan Vs Tingkat Pengangguran", x = "Tingkat Kemiskinan", y = "Tingkat Pengangguran")
+
+# Scatter plot Tingkat Pengangguran vs. IPM
+ggplot(data = kemiskinan, aes(x = Kemiskinan, y = IPM)) +
+  geom_point(color = "darkred") +
+  labs(title = "Tingkat Kemiskinan dan Indeks Pembangunan Manusia (IPM)", x = "Tingkat Kemiskinan", y = "IPM")
+```
+
+## Analisis Regresi Berganda
+
+```{r}
+# Model regresi
+anreg <- lm(Kemiskinan ~ Jumlah_Penduduk + Tingkat_Pengganguran + IPM, data = kemiskinan)
+anreg
+```
+
+Dalam hal ini Y adalah variaibel respon yakni Kemiskinan dan X1 adalah Jumlah Penduduk, X2 adalah Tingkat Pengangguran, serta X3 adalah Indeks Pengembangan Masyarakat (IPM). Berdasarkan ouputan kode program, didapatkan informasi sebagai berikut:
+
+| Parameter | Nilai    |
+|-----------|----------|
+| $\beta_0$ | 141.2024 |
+| $\beta_1$ | 0.1087   |
+| $\beta_2$ | 1.0090   |
+| $\beta_3$ | -2.1945  |
+
+```{r}
+summary(anreg)
+```
+
+### **Pendugaan Parameter**
+
+Berdasarkan hasil sumarry diatas, model regresi dari data didapatkan sebagai berikut:
+
+$Y = 141.2024 + 0.1087X_1 + 1.0090X_2 - 2.1945X_3$
+
+### Uji Simultan (F)
+
+Nilai p-value $3.871 * 10^{-5} < 𝛼(0.05) Ftabel(4, 12) = 5.91$maka Ho ditolak. Sehingga dapat disimpulkan bahwa minimal terdapat variabe prediktor yang pengaruh terhadap variabel respons secara simultan.
+
+### Uji Parsial (t)
+
+-   **Untuk** $X_1$ **(Jumlah Penduduk**)
+
+    Nilai p-value $6.13 * 10^{-6} < 𝛼(0.05)Ftabel(3, 0.05) =2.770$ maka tolak Ho. Dapat disimpulkan bahwa terdapat pengaruh yang signifikan antara Jumlah Penduduk terdapat Tingkat Kemiskinan secara parsial.
+
+-   **Untuk** $X_2$ **(Tingkat Pengangguran)**
+
+    Nilai p-value $(0.827) < 𝛼(0.05)=2.770$ maka tolak Ho. Dapat disimpulkan bahwa terdapat pengaruh yang signifikan antar Tingkat Pengganguran terhadap Kemiskinan.
+
+-   **Untuk** $X_3$ **(IPM)**
+
+    Nilai p-value $(0.193) < 𝛼(0.05) = 2.770$ maka terima Ho. Dapat disimpulkan bahwa terdapat pengaruh yang signifikan antar IPM terhadap Kemiskinan.
+
+## Asumsi Regresi Linier Berganda
+
+### 1. Pendekatan Multikolinearitas
+
+```{r}
+library(car)
+vif (anreg)
+```
+
+Karena nilai VIF pada X1, X2, dan X3 berada dibawah 10, maka tidak terjadi multikolinearitas. Artinya, asumsi mutikolinearitas terpenuhi.
+
+### 2. Normalitas Galat
+
+```{r}
+library(tseries)
+sisa <- residuals (anreg)
+sisa
+```
+
+```{r}
+shapiro.test(sisa)
+```
+
+**Hipotesis**
+
+Ho : Galat menyebar normal
+
+H1 : Galat tidak menyebar normal berdasarkan uji shapiro wilk
+
+Berdasarkan hasil yang diperoleh didapatkan p-value $(0.4499) > 𝛼(0.05)$ maka Ho diterima. Dapat disimpulkan bahwa galat menyebar normal, dan mengartikan bahwa uji asumsi normalitas terpenuhi.
+
+### 3. Homogenitas Ragam Galat
+
+```{r}
+library("lmtest")
+bptest(anreg)
+```
+
+**Hipotesis**
+
+H0 : Tidak terjadi heteroskdesastisitas
+
+H1 : Terjadi heteroskdesastisitas berdasarkan uji bp-test
+
+Dapat disimpulkan bahwa nilai p-value $(0.2367) > 𝛼(0.05)$ maka Ho diterima. Dapat disimpulkan bahwa tidak terjadi heteroskedastisitas artinya asumsi homogenitas ragam galat terpenuhi.
+
+### 4. Non Autokorelasi Galat
+
+```{r}
+dwtest(anreg)
+```
+
+**Hipotesis**
+
+H0 : Tidak terjadi autokorelasi
+
+H1 : Terjadi autokorelasi
+
+Berdasarkan uji Durbin Watson, nilai p-value $(0.6711) > 𝛼(0.05)$, maka Ho diterima. Dapat disimpulkan bahwa tidak terjadi kasus autokorelasi pada galat.
+
+### Koefisien Korelasi
+
+Koefisin determinasi didapatkan sebesar $0.832$ artinya variabel prediktor (Jumlah Penduduk, Tingkat Pengganguran, dan IPM) mempengaruhi variabel respon (Tingkat Kemiskinan) sebesar $83.2\%$, sedangkan sisanya dipengaruhi oleh variabe di luar model.
